@@ -11,8 +11,11 @@ Vector2 operator-(Vector2 const& l, Vector2 const& rhs);
 Vector2 operator*(Vector2 const& v, double scalar);
 Vector2 operator/(Vector2 const& v, double scalar);
 
+bool operator==(Vector2 const& a, Vector2 const& b);
+
 double norm(Vector2 const& v);
 double distance(Vector2 const& a, Vector2 const& b);
+
 }
 
 #endif
