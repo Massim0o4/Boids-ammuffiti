@@ -6,8 +6,9 @@ struct Vector2 {
   double x;
   double y;
 };
+
 Vector2 operator+(Vector2 const& l, Vector2 const& r);
-Vector2 operator-(Vector2 const& l, Vector2 const& rhs);
+Vector2 operator-(Vector2 const& l, Vector2 const& r);
 Vector2 operator*(Vector2 const& v, double scalar);
 Vector2 operator/(Vector2 const& v, double scalar);
 

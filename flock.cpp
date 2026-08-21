@@ -51,7 +51,7 @@ Vector2 Flock::alignment(std::size_t i) const
 
     double const n = static_cast<double>(neighbours);
 
-    return velocity_diff_sum * a_ / n;
+    return velocity_diff_sum * a_ / n; //da chiedere a chat
 }
 
 Vector2 Flock::cohesion(std::size_t i) const {
@@ -78,7 +78,7 @@ Vector2 Flock::cohesion(std::size_t i) const {
     }
 
     double const n = static_cast<double>(neighbours);
-    Vector2 const centre = position_sum / n;
+    Vector2 const centre = position_sum / n; 
 
     return (centre - boids_[i].position()) * c_;
 }
@@ -135,8 +135,7 @@ double Flock::speed_stddev() const
 
     for (std::size_t i = 0; i < boids_.size(); ++i) {
 
-        double const difference =
-            norm(boids_[i].velocity()) - mean;
+        double const difference = norm(boids_[i].velocity()) - mean;
 
         sum += difference * difference;
     }

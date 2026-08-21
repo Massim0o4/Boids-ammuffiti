@@ -1,7 +1,6 @@
 #include "vector2.hpp"
-#include "flock.hpp"
-
 #include <cmath>
+
 namespace boids {
 
 Vector2 operator+(Vector2 const& l, Vector2 const& r) {
