@@ -2,23 +2,23 @@
 #define BOID_HPP
 
 
-#include "vector2.hpp"
+#include "vector3.hpp"
 
 namespace boids {
 
 class Boid {
  private:
-    Vector2 position_;
-    Vector2 velocity_;
+    Vector3 position_;
+    Vector3 velocity_;
 
  public:
-    Boid(Vector2 position, Vector2 velocity);
+    Boid(Vector3 position, Vector3 velocity);
 
-    Vector2 const& position() const;
-    Vector2 const& velocity() const;
+    Vector3 const& position() const;
+    Vector3 const& velocity() const;
 
-    void set_position(Vector2 const& position);
-    void set_velocity(Vector2 const& velocity);
+    void set_position(Vector3 const& position);
+    void set_velocity(Vector3 const& velocity);
 };
 }
 #endif

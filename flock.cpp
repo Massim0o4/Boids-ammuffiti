@@ -1,14 +1,35 @@
 #include "flock.hpp"
-
+#include <stdexcept>
 #include <cmath>
 
 namespace boids {
 
-Flock::Flock(std::vector<Boid> boids, double d, double ds, double s, double a, double c)
-    : boids_{boids}, d_{d}, ds_{ds}, s_{s}, a_{a}, c_{c} {} 
+Flock::Flock(std::vector<Boid> boids, double d, double ds, double s, double a, double c, double max_speed, double Lx, double Ly, double Lz,)
+    : boids_{boids}, d_{d}, ds_{ds}, s_{s}, a_{a}, c_{c}, max_speed_{max_speed}, Lx_ {Lx}, Ly_ {Ly},  Lz_ {Lz}, {} 
 
-Vector2 Flock::separation(std::size_t i) const {
-    Vector2 result{0., 0.};
+Vector3 Flock::wrap_position(Vector3 const& position) const {
+    Vector3 result = position;
+
+    if (result.x < 0.) {
+        result.x += Lx_;
+    } else if (result.x >= Lx_) {
+        result.x -= Lx_;
+    } 
+    if (result.y < 0.) {
+        result.x += Ly_;
+    } else if (result.x >= Ly_) {
+        result.y -= Ly_;
+    } 
+    if (result.z < 0.) {
+        result.z += Lz_;
+    } else if (result.z >= Lz_) {
+        result.z -= Lz_;
+    } 
+    return result;
+}
+
+Vector3 Flock::separation(std::size_t i) const {
+    Vector3 result{0., 0., 0.};
 
     for (std::size_t j = 0; j < boids_.size(); ++j) {
         if (j == i) {
@@ -25,9 +46,9 @@ Vector2 Flock::separation(std::size_t i) const {
     return result;
 } 
 
-Vector2 Flock::alignment(std::size_t i) const
+Vector3 Flock::alignment(std::size_t i) const
 {
-    Vector2 velocity_diff_sum{0., 0.};
+    Vector3 velocity_diff_sum{0., 0., 0.};
     std::size_t neighbours{0};
 
     for (std::size_t j = 0; j < boids_.size(); ++j) {
@@ -46,7 +67,7 @@ Vector2 Flock::alignment(std::size_t i) const
     }
 
     if (neighbours == 0) {
-        return Vector2{0., 0.};
+        return Vector3{0., 0., 0.};
     }
 
     double const n = static_cast<double>(neighbours);
@@ -54,8 +75,8 @@ Vector2 Flock::alignment(std::size_t i) const
     return velocity_diff_sum * a_ / n; //da chiedere a chat
 }
 
-Vector2 Flock::cohesion(std::size_t i) const {
-    Vector2 position_sum{0., 0.};
+Vector3 Flock::cohesion(std::size_t i) const {
+    Vector3 position_sum{0., 0., 0.};
     std::size_t neighbours{0};
 
     for (std::size_t j = 0; j < boids_.size(); ++j) {
@@ -74,11 +95,11 @@ Vector2 Flock::cohesion(std::size_t i) const {
     }
 
     if (neighbours == 0) {
-        return Vector2{0., 0.};
+        return Vector3{0., 0.,0.};
     }
 
     double const n = static_cast<double>(neighbours);
-    Vector2 const centre = position_sum / n; 
+    Vector3 const centre = position_sum / n; 
 
     return (centre - boids_[i].position()) * c_;
 }
@@ -89,11 +110,14 @@ void Flock::update(double dt)
 
     for (std::size_t i = 0; i < boids_.size(); ++i) {
 
-        Vector2 const new_velocity =
-            boids_[i].velocity() + separation(i) + alignment(i) + cohesion(i);
+        Vector3 new_velocity = boids_[i].velocity() + separation(i) + alignment(i) + cohesion(i);
 
-        Vector2 const new_position =
-            boids_[i].position() + new_velocity * dt;
+        double const speed = norm(new_velocity);
+        if (speed > max_speed_) { new_velocity = new_velocity * (max_speed_ / speed);
+}
+
+        Vector3 const new_position = boids_[i].position() + new_velocity * dt;
+        wrap_position (new_position);
 
         new_boids[i].set_velocity(new_velocity);
         new_boids[i].set_position(new_position);

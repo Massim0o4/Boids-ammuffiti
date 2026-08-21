@@ -1,13 +1,13 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 #include "boid.hpp"
-#include "vector2.hpp"
+#include "vector3.hpp"
 #include <cmath>
 
-TEST_CASE ("Vector2 addition, norm and distance")
+TEST_CASE ("Vector3 addition, norm and distance")
 {
-   boids::Vector2 const a{1., 2.};
-   boids::Vector2 const b{1., 1.};
+   boids::Vector3 const a{1., 2.};
+   boids::Vector3 const b{1., 1.};
 
     auto const c = a + b;
 
@@ -19,8 +19,8 @@ TEST_CASE ("Vector2 addition, norm and distance")
 
 TEST_CASE ("boids setting and refresh")
 {
-   boids::Vector2 const a{1., 2.};
-   boids::Vector2 const b{1., 1.};
+   boids::Vector3 const a{1., 2.};
+   boids::Vector3 const b{1., 1.};
    boids::Boid c {a,b}; 
 
     CHECK(c.position() == a); //è pericoloso usare == se si fa un calcolo in quanto si fanno dei calcoli su dei double, nel caso meglio usare l'approx
