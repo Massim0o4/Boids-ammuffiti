@@ -4,49 +4,42 @@
 
 namespace boids {
 
-Flock::Flock(std::vector<Boid> boids, double d, double ds, double s, double a, double c, double max_speed, double Lx, double Ly, double Lz,)
-    : boids_{boids}, d_{d}, ds_{ds}, s_{s}, a_{a}, c_{c}, max_speed_{max_speed}, Lx_ {Lx}, Ly_ {Ly},  Lz_ {Lz}, {} 
+Flock::Flock(std::vector<Boid> boids, double d, double ds, double s, double a, double c, double max_speed, double Lx, double Ly, double Lz)
+    : boids_{boids}, d_{d}, ds_{ds}, s_{s}, a_{a}, c_{c}, max_speed_{max_speed}, Lx_ {Lx}, Ly_ {Ly},  Lz_ {Lz} {} 
 
-    Vector3 Flock::toroidal_displacement(Vector3 cosnt& a, Vecotr3 const& b) const{
+double Flock::toroidal_shortcut(double d, double L) const { //deve essere const perché usato in altre funzioni const
+        while (d > L / 2.0) {
+            d -= L;} 
+        while (d < -L / 2.0) {
+            d += L;}
+        return d;
+        };    
+
+ Vector3 Flock::wrap_position(Vector3 position) const {
+    position.x = toroidal_shortcut(position.x, Lx_); //implica che è un cubo centrato in 0, quindi inizia a -L/2!
+    position.y = toroidal_shortcut(position.y, Ly_);
+    position.z = toroidal_shortcut(position.z, Lz_);
+    return position;
+} 
+
+Vector3 Flock::toroidal_displacement(Vector3 const& a, Vector3 const& b) const{
         Vector3 delta = b - a;
-        if(delta.x > Lx_ / 2.0){
-            delta.x -= Lx_;
-        } else if (delta.x < -Lx / 2.0) {
-            delta.x += Lx_;
-        }
-        if(delta.y > Ly_ / 2.0){
-            delta.y -= Ly_;
-        } else if (delta.y < -Ly / 2.0) {
-            delta.y += Ly_;
-        }
-        if(delta.z > Lz_ / 2.0){
-            delta.z -= Lz_;
-        } else if (delta.z < -Lz / 2.0) {
-            delta.z += Lz_;
-        }
+
+        delta.x = toroidal_shortcut(delta.x, Lx_);
+        delta.y = toroidal_shortcut(delta.y, Ly_);
+        delta.z = toroidal_shortcut(delta.z, Lz_);
         return delta;
     }
 
- /*Vector3 Flock::wrap_position(Vector3 const& position) const {
-    Vector3 result = position;
-
-    if (result.x < 0.) {
-        result.x += Lx_;
-    } else if (result.x >= Lx_) {
-        result.x -= Lx_;
-    } 
-    if (result.y < 0.) {
-        result.x += Ly_;
-    } else if (result.x >= Ly_) {
-        result.y -= Ly_;
-    } 
-    if (result.z < 0.) {
-        result.z += Lz_;
-    } else if (result.z >= Lz_) {
-        result.z -= Lz_;
-    } 
-    return result;
-} */
+bool Flock::visible (std::size_t i, Vector3 const& delta) const {
+    Vector3 const velocity = boids_[i].velocity();
+    if ( norm(velocity ) == 0 || norm(delta) == 0) {
+        return true;
+    }
+    double cos_teta = scalar_product(velocity, delta)/ (norm (velocity) * norm (delta)); 
+    
+    return std::cos(boids_[i].view_angle() / 2.) <= cos_teta ;
+}
 
 Vector3 Flock::separation(std::size_t i) const {
     Vector3 result{0., 0., 0.};
@@ -55,14 +48,13 @@ Vector3 Flock::separation(std::size_t i) const {
         if (j == i) {
             continue;
         }
+        Vector3 delta = toroidal_displacement (boids_[i].position(), boids_[j].position());
 
-        if (distance(boids_[i].position(),
-                     boids_[j].position()) < ds_) {
+        if (norm(delta) < ds_) {
 
-            result = result - (boids_[j].position() - boids_[i].position()) * s_;
+            result = result - delta * s_;
         }
     }
-
     return result;
 } 
 
@@ -75,12 +67,11 @@ Vector3 Flock::alignment(std::size_t i) const
         if (j == i) {
             continue;
         }
+        Vector3 delta = toroidal_displacement (boids_[i].position(), boids_[j].position());
 
-        if (distance(boids_[i].position(),
-                     boids_[j].position()) < d_) {
+        if (norm(delta) < d_ && visible (i, delta )) {
 
-            velocity_diff_sum = velocity_diff_sum + 
-                (boids_[j].velocity() - boids_[i].velocity());
+            velocity_diff_sum = velocity_diff_sum + (boids_[j].velocity() - boids_[i].velocity());
 
             ++neighbours;
         }
@@ -92,7 +83,7 @@ Vector3 Flock::alignment(std::size_t i) const
 
     double const n = static_cast<double>(neighbours);
 
-    return velocity_diff_sum * a_ / n; //da chiedere a chat
+    return velocity_diff_sum * a_ / n; //è n-1 perché non conta se stesso
 }
 
 Vector3 Flock::cohesion(std::size_t i) const {
@@ -100,16 +91,14 @@ Vector3 Flock::cohesion(std::size_t i) const {
     std::size_t neighbours{0};
 
     for (std::size_t j = 0; j < boids_.size(); ++j) {
-
         if (j == i) {
             continue;
         }
+        Vector3 delta = toroidal_displacement (boids_[i].position(), boids_[j].position());
 
-        if (distance(boids_[i].position(),
-                     boids_[j].position()) < d_) {
+        if (norm(delta) < d_ && visible (i, delta )) {
 
-            position_sum = position_sum + boids_[j].position();
-
+            position_sum = position_sum + delta;
             ++neighbours;
         }
     }
@@ -121,7 +110,7 @@ Vector3 Flock::cohesion(std::size_t i) const {
     double const n = static_cast<double>(neighbours);
     Vector3 const centre = position_sum / n; 
 
-    return (centre - boids_[i].position()) * c_;
+    return centre  * c_;
 }
 
 void Flock::update(double dt)
@@ -136,8 +125,8 @@ void Flock::update(double dt)
         if (speed > max_speed_) { new_velocity = new_velocity * (max_speed_ / speed);
 }
 
-        Vector3 const new_position = boids_[i].position() + new_velocity * dt;
-        wrap_position (new_position);
+        Vector3 new_position = boids_[i].position() + new_velocity * dt;
+        new_position = wrap_position (new_position);
 
         new_boids[i].set_velocity(new_velocity);
         new_boids[i].set_position(new_position);
@@ -201,11 +190,9 @@ double Flock::mean_distance() const
     for (std::size_t i = 0; i < boids_.size(); ++i) {
 
         for (std::size_t j = i + 1; j < boids_.size(); ++j) {
+            Vector3 delta = toroidal_displacement (boids_[i].position(), boids_[j].position());
 
-            sum += distance(
-                boids_[i].position(),
-                boids_[j].position());
-
+            sum += norm(delta);
             ++pairs;
         }
     }
@@ -227,11 +214,9 @@ double Flock::distance_stddev() const
     for (std::size_t i = 0; i < boids_.size(); ++i) {
 
         for (std::size_t j = i + 1; j < boids_.size(); ++j) {
+            Vector3 delta = toroidal_displacement (boids_[i].position(), boids_[j].position());
 
-            double const difference =
-                distance(
-                    boids_[i].position(),
-                    boids_[j].position()) - mean;
+            double const difference = norm(delta) - mean;
 
             sum += difference * difference;
 

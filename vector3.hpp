@@ -17,6 +17,7 @@ bool operator==(Vector3 const& a, Vector3 const& b);
 
 double norm(Vector3 const& v);
 double distance(Vector3 const& a, Vector3 const& b);
+double scalar_product(Vector3 const& a, Vector3 const& b); 
 
 }
 

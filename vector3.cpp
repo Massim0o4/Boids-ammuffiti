@@ -29,4 +29,8 @@ double distance(Vector3 const& a, Vector3 const& b) {
     Vector3 diff = a - b;
     return norm (diff);}
 
+double scalar_product(Vector3 const& a, Vector3 const& b) {
+    return a.x * b.x + a.y * b.y + a.z * b.z ; 
+}
+
 }

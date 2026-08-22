@@ -43,7 +43,7 @@ string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG
 # Programma principale
 add_executable(boids
     main.cpp
-    vector2.cpp
+    vector3.cpp
     boid.cpp
     flock.cpp
 )
@@ -53,7 +53,7 @@ if (BUILD_TESTING)
 
   add_executable(boids.test
       boids.test.cpp
-      vector2.cpp
+      vector3.cpp
       boid.cpp
       flock.cpp
   )
