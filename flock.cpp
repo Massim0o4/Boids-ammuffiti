@@ -7,7 +7,27 @@ namespace boids {
 Flock::Flock(std::vector<Boid> boids, double d, double ds, double s, double a, double c, double max_speed, double Lx, double Ly, double Lz,)
     : boids_{boids}, d_{d}, ds_{ds}, s_{s}, a_{a}, c_{c}, max_speed_{max_speed}, Lx_ {Lx}, Ly_ {Ly},  Lz_ {Lz}, {} 
 
-Vector3 Flock::wrap_position(Vector3 const& position) const {
+    Vector3 Flock::toroidal_displacement(Vector3 cosnt& a, Vecotr3 const& b) const{
+        Vector3 delta = b - a;
+        if(delta.x > Lx_ / 2.0){
+            delta.x -= Lx_;
+        } else if (delta.x < -Lx / 2.0) {
+            delta.x += Lx_;
+        }
+        if(delta.y > Ly_ / 2.0){
+            delta.y -= Ly_;
+        } else if (delta.y < -Ly / 2.0) {
+            delta.y += Ly_;
+        }
+        if(delta.z > Lz_ / 2.0){
+            delta.z -= Lz_;
+        } else if (delta.z < -Lz / 2.0) {
+            delta.z += Lz_;
+        }
+        return delta;
+    }
+
+ /*Vector3 Flock::wrap_position(Vector3 const& position) const {
     Vector3 result = position;
 
     if (result.x < 0.) {
@@ -26,7 +46,7 @@ Vector3 Flock::wrap_position(Vector3 const& position) const {
         result.z -= Lz_;
     } 
     return result;
-}
+} */
 
 Vector3 Flock::separation(std::size_t i) const {
     Vector3 result{0., 0., 0.};
